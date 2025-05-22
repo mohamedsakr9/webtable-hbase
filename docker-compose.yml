@@ -1,0 +1,429 @@
+version: '3'
+services:
+  m1:
+    image: opt-ha
+    container_name: m1
+    hostname: m1
+    ports:
+      - "50778:50070"
+      - "8088:8088"
+    networks:
+      - hadoop_network
+    volumes:
+      - hadoop_namenode_data:/hadoop/dfs/name 
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q NameNode && jps | grep -q ResourceManager"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  m2:
+    image: opt-ha
+    container_name: m2
+    hostname: m2
+    ports:
+      - "50777:50070" 
+      - "8089:8088"
+    networks:
+      - hadoop_network
+    volumes:
+      - hadoop_namenode_data:/hadoop/dfs/name 
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q NameNode && jps | grep -q ResourceManager"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  m3:
+    image: opt-ha
+    container_name: m3
+    hostname: m3
+    ports:
+      - "50779:50070" 
+      - "8087:8088"
+    networks:
+      - hadoop_network
+    volumes:
+      - hadoop_namenode_data:/hadoop/dfs/name 
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q NameNode && jps | grep -q ResourceManager"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  w1:
+    image: opt-ha
+    container_name: w1
+    hostname: w1
+    networks:
+      - hadoop_network
+    volumes:
+     - datanode_data_w1:/Data/hadoop-3.3.6/datanode
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "jps | grep -q DataNode"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  w2:
+    image: opt-ha
+    container_name: w2
+    hostname: w2
+    networks:
+      - hadoop_network
+    volumes:
+      - datanode_data_w2:/Data/hadoop-3.3.6/datanode
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "jps | grep -q DataNode"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+# HBase Master Servers
+  hm1:
+    image: hbase-unified
+    container_name: hm1
+    hostname: hm1
+    ports:
+      - "16000:16000"  # HBase Master
+      - "16010:16010"  # HBase Master Web UI
+    networks:
+      - hadoop_network
+    volumes:
+      - hbase_master1_data:/data/hbase
+    depends_on:
+      m1:
+        condition: service_healthy
+      m2:
+        condition: service_healthy
+      m3:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q HMaster"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  hm2:
+    image: hbase-unified
+    container_name: hm2
+    hostname: hm2
+    ports:
+      - "16001:16000"  # HBase Master
+      - "16011:16010"  # HBase Master Web UI
+    networks:
+      - hadoop_network
+    volumes:
+      - hbase_master2_data:/data/hbase
+    depends_on:
+      m1:
+        condition: service_healthy
+      m2:
+        condition: service_healthy
+      m3:
+        condition: service_healthy
+      hm1:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q HMaster"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # HBase RegionServers
+  rs1:
+    image: hbase-unified
+    container_name: rs1
+    hostname: rs1
+    ports:
+      - "16020:16020"  # RegionServer
+      - "16030:16030"  # RegionServer Web UI
+    networks:
+      - hadoop_network
+    volumes:
+      - hbase_rs1_data:/data/hbase
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "3G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q HRegionServer"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  rs2:
+    image: hbase-unified
+    container_name: rs2
+    hostname: rs2
+    ports:
+      - "16021:16020"  # RegionServer
+      - "16031:16030"  # RegionServer Web UI
+    networks:
+      - hadoop_network
+    volumes:
+      - hbase_rs2_data:/data/hbase
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "3G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q HRegionServer"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  rs3:
+    image: hbase-unified
+    container_name: rs3
+    hostname: rs3
+    ports:
+      - "16022:16020"  # RegionServer
+      - "16032:16030"  # RegionServer Web UI
+    networks:
+      - hadoop_network
+    volumes:
+      - hbase_rs3_data:/data/hbase
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "3G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "jps | grep -q HRegionServer"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+
+  postgres:
+    image: postgres
+    container_name: metagres
+    hostname: metagres
+    ports:
+      - "6432:5432" 
+    environment:
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+      - POSTGRES_DB=metastore
+    volumes:
+      - metagres:/var/lib/postgresql/data
+    networks:
+      - hadoop_network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "hive", "-d", "metastore"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  metastore:
+    image: hive
+    container_name: metastore
+    hostname: metastore
+    ports:
+      - "9083:9083"
+    networks:
+      - hadoop_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      m1:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 9083 || jps | grep -q RunJar"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  hive-1:
+    image: hive
+    container_name: hive-1
+    hostname: hive-1
+    ports:
+      - "10000:10000" 
+      - "9999:9999" 
+      - "9090:8080"
+      - "10002:10002"
+    networks:
+      - hadoop_network
+    depends_on:
+      metastore:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 10000 || jps | grep -q RunJar"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  hive-2:
+    image: hive
+    container_name: hive-2
+    hostname: hive-2
+    ports:
+      - "10001:10000" 
+      - "9998:9999" 
+      - "9091:8080"
+      - "10003:10002"
+    networks:
+      - hadoop_network
+    depends_on:
+      metastore:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 10000 || jps | grep -q RunJar"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  hive-3:
+    image: hive
+    container_name: hive-3
+    hostname: hive-3
+    ports:
+      - "10008:10000" 
+      - "9997:9999" 
+      - "9092:8080"
+      - "10004:10002"
+    networks:
+      - hadoop_network
+    depends_on:
+      metastore:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 10000 || jps | grep -q RunJar"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  haproxy:
+    image: haproxy
+    container_name: haproxy
+    hostname: haproxy
+    ports:
+      - "10010:10010"  
+      - "8404:8404"    
+    networks:
+      - hadoop_network
+    depends_on:
+      hive-1:
+        condition: service_healthy
+      hive-2:
+        condition: service_healthy
+      hive-3:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "10010"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      
+  nifi:
+    image: apache/nifi:1.23.2 
+    container_name: nifi
+    hostname: nifi
+    ports:
+      - "9900:8443"
+    environment:
+      - NIFI_WEB_HTTPS_PORT=8443
+      - NIFI_WEB_HTTPS_HOST=0.0.0.0
+      - NIFI_WEB_PROXY_HOST=localhost:9900
+      - SINGLE_USER_CREDENTIALS_USERNAME=sakr
+      - SINGLE_USER_CREDENTIALS_PASSWORD=HolyMolyNifi$
+      - NIFI_SENSITIVE_PROPS_KEY=nififtw12345!
+    volumes:
+      - nifi_lib:/opt/nifi/nifi-current/lib
+    networks:
+      - hadoop_network
+
+networks:
+  hadoop_network:
+    driver: bridge
+
+volumes:
+  metagres:
+  hadoop_namenode_data: # Persists NameNode metadata
+  datanode_data_w1:
+  datanode_data_w2:
+  nifi_lib: # Persists NiFi libraries
+  hbase_master1_data:
+  hbase_master2_data:
+  hbase_rs1_data:
+  hbase_rs2_data:
+  hbase_rs3_data:
