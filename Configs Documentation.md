@@ -54,15 +54,12 @@ This guide documents a distributed HBase cluster configuration designed for cont
 | `hbase.rootdir` | `hdfs://sakrcluster/hbase` | HBase data storage location |
 | `hbase.zookeeper.quorum` | `m1,m2,m3` | ZooKeeper ensemble |
 | `hbase.master.info.port` | `16010` | Web UI port |
-| `hbase.wal.provider` | `filesystem` | Write-Ahead Log provider |
 
 #### Cluster Management Properties
 
 | Property | Value | Purpose |
 |----------|-------|---------|
 | `hbase.master.wait.on.regionservers.mintostart` | `1` | Minimum RegionServers to start |
-| `hbase.assignments.client.timeout` | `300000` | Client timeout (5 minutes) |
-| `hbase.master.loadbalancer.autoStartUp` | `false` | Manual load balancer control |
 | `hbase.regionserver.hostname` | `$HOSTNAME` | Dynamic hostname resolution |
 
 ### 3. Cluster Membership
